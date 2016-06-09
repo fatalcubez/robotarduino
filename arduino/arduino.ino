@@ -48,7 +48,7 @@ void setup() {
 //  Serial.println(Ethernet.localIP())
 
   // if you get a connection, report back via serial:
-  while(!tempClient.connect(server, 3000)){
+  while(!tempClient.connect(serverIP, 3000)){
     Serial.println("Connection failed. Retrying...");
     delay(2000);
   }
@@ -91,7 +91,7 @@ void loop() {
      // an http request ends with a blank line
     
     if (tempClient.available()) {
-      char c = client.read();
+      char c = tempClient.read();
       //Serial.write(c);
       // if you've gotten to the end of the line (received a newline
       // character) and the line is blank, the http request has ended,
@@ -112,10 +112,10 @@ void loop() {
       
       if (c == '\n' && currentLineIsBlank) {
         // send a standard http response header
-        client.println("HTTP/1.1 200 OK");
-        client.println("Content-Type: text/html");
-        client.println("Connection: close");
-        client.println();
+        tempClient.println("HTTP/1.1 200 OK");
+        tempClient.println("Content-Type: text/html");
+        tempClient.println("Connection: close");
+        tempClient.println();
         
       }
       if (c == '\n') {
@@ -130,9 +130,13 @@ void loop() {
     // Server stuff
     EthernetClient client = server.available();
     if (client) {
+      boolean skip = true;
+      String request = "";
       while (client.connected()) {
         if (client.available()) {
           char c = client.read();
+          Serial.write(c);
+          request = request + c;
 
           if(c == '}'){
             inJson = false;
@@ -149,7 +153,7 @@ void loop() {
           // if you've gotten to the end of the line (received a newline
           // character) and the line is blank, the http request has ended,
           // so you can send a reply
-          if (c == '\n' && currentLineIsBlank) {
+          if (c == '\n' && currentLineIsBlank && !skip) {
             // send a standard http response header
             client.println("HTTP/1.1 200 OK");
             client.println("Content-Type: text/html");
@@ -157,6 +161,7 @@ void loop() {
             client.println();
             break;
           }
+          if
           if (c == '\n') {
             // you're starting a new line
             currentLineIsBlank = true;
