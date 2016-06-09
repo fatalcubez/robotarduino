@@ -130,38 +130,47 @@ void loop() {
     // Server stuff
     EthernetClient client = server.available();
     if (client) {
+      String req_str = "";
+      int data_length = -1;
       boolean skip = true;
-      String request = "";
-      while (client.connected()) {
+
+      //int empty_line_count = 0;
+      while (client.connected()) 
+      {
         if (client.available()) {
           char c = client.read();
-          Serial.write(c);
-          request = request + c;
-
-          if(c == '}'){
-            inJson = false;
-            Serial.println("JSON: " + response);
-          }
-      
-          if(inJson){
-            response = response + c;
-          }
-      
-          if(c == '{'){
-            inJson = true;
-          }
+          //Serial.write(c);
+          req_str += c;
+  
           // if you've gotten to the end of the line (received a newline
           // character) and the line is blank, the http request has ended,
-          // so you can send a reply
-          if (c == '\n' && currentLineIsBlank && !skip) {
-            // send a standard http response header
-            client.println("HTTP/1.1 200 OK");
-            client.println("Content-Type: text/html");
-            client.println("Connection: close");  // the connection will be closed after completion of the response
-            client.println();
+          // so you can send a reply       
+          if (c == '\n' && currentLineIsBlank && req_str.startsWith("GET")) {
+            writeResponse(client);
             break;
           }
-          if
+          if (c == '\n' && currentLineIsBlank && req_str.startsWith("POST") && !skip) {
+            writeResponse(client);
+            break;
+          }   
+          if (c == '\n' && currentLineIsBlank && req_str.startsWith("POST") && skip) {
+            skip = false;
+            String temp = req_str.substring(req_str.indexOf("Content-Length:") + 15);
+            temp.trim();
+            //Serial.print("Content-Length=");
+            data_length = temp.toInt();
+            /*Serial.println(data_length);
+            writeResponse(client);
+            break;*/
+            while(data_length-- > 0)
+            {
+              c = client.read();
+              req_str += c;
+            }
+            writeResponse(client);
+            break;
+          }
+  
           if (c == '\n') {
             // you're starting a new line
             currentLineIsBlank = true;
@@ -171,6 +180,8 @@ void loop() {
           }
         }
       }
+
+      Serial.println(req_str);
       // give the web browser time to receive the data
       delay(1);
       // close the connection:
@@ -178,6 +189,13 @@ void loop() {
       Serial.println("client disconnected");
     }
 }
+
+void writeResponse(EthernetClient client) {
+    // send a standard http response header
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-Type: text/html");
+    client.println("Connection: close");  // the connection will be closed after completion of the response
+  }
 
 String formatMessage(String message){ 
   char arr[message.length()+1];
