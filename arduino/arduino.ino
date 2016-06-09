@@ -155,7 +155,8 @@ void loop() {
           }   
           if (c == '\n' && currentLineIsBlank && req_str.startsWith("POST") && skip) {
             skip = false;
-            String temp = req_str.substring(req_str.indexOf("Content-Length:") + 15);
+            String temp = req_str.substring(req_str.indexOf("content-length:") + 15);
+            Serial.println(temp);
             temp.trim();
             //Serial.print("Content-Length=");
             data_length = temp.toInt();
@@ -193,8 +194,8 @@ void loop() {
 void writeResponse(EthernetClient client) {
     // send a standard http response header
     client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: text/html");
-    client.println("Connection: close");  // the connection will be closed after completion of the response
+    client.println("Connection: close");
+    client.println();
   }
 
 String formatMessage(String message){ 
