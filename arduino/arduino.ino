@@ -37,15 +37,8 @@ void setup() {
   Serial.println("Connected...");
   // print your local IP address:
   printIPAddress();
-//  message = formatMessage(message);
-//  Serial.println(message);
-
-// give the Ethernet shield a second to initialize:
   delay(1000);
   Serial.println("connecting...");
-//  server.begin();
-//  Serial.print("server is at ");
-//  Serial.println(Ethernet.localIP())
 
   // if you get a connection, report back via serial:
   while(!tempClient.connect(serverIP, 3000)){
@@ -56,40 +49,9 @@ void setup() {
   tempClient.println("Host: 192.168.7.50");
   tempClient.println("Connection: close");
   tempClient.println();
-//  if(client.connect(server, 3000)) {
-//    Serial.println("connected");
-//    // Make a HTTP request:
-//    client.println("GET /connect HTTP/1.1");
-//    client.println("Host: 192.168.7.50");
-//    client.println("Connection: close");
-//    client.println();
-//  } else {
-//    // if you didn't get a connection to the server:
-//    Serial.println("connection failed");
-//  }
 }
 
-void loop() {
-//  for(int i = 0; i < sizeof(message); i++){
-//    playCharacter(message[i]);
-//  }
-
-//  if (client.available()) {
-//    char c = client.read();
-//    Serial.print(c);
-//  }
-//
-//  // if the server's disconnected, stop the client:
-//  if (!client.connected()) {
-//    Serial.println();
-//    Serial.println("disconnecting.");
-//    client.stop();
-//
-//    // do nothing forevermore:
-//    while (true);
-//  }
-     // an http request ends with a blank line
-    
+void loop() {    
     if (tempClient.available()) {
       char c = tempClient.read();
       //Serial.write(c);
@@ -169,6 +131,17 @@ void loop() {
               req_str += c;
             }
             writeResponse(client);
+            if(req_str.indexOf("Convert:") != -1){
+              String m = req_str.substring(req_str.indexOf("Convert:") + 9);
+              Serial.println(m);
+              m = formatMessage(m);
+              char arr[m.length()+1];
+              m.toCharArray(arr, m.length() + 1);
+              Serial.println("here");
+              for(int i = 0; i < sizeof(arr); i++){
+                playCharacter(arr[i]);
+              }
+            }
             break;
           }
   
